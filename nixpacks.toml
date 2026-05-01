@@ -1,2 +1,6 @@
+[dependencies]
+# Your primary runtime
+nodejs = "18.x"
+
 [phases.setup]
-nixPkgs = ["ghostscript"]
+    aptPkgs = ['ghostscript']
