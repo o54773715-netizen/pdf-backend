@@ -4,17 +4,18 @@ const { exec } = require('child_process');
 const fs = require('fs');
 
 const app = express();
-const upload = multer({ dest: 'uploads/' });
+const upload = multer({ dest: '/tmp/' });
 
-// Root route (VERY IMPORTANT)
+// Health check route (Railway needs this)
 app.get('/', (req, res) => {
-    res.send('Server is running ✅');
+    res.status(200).send('OK');
 });
 
-// Compress route
 app.post('/compress', upload.single('pdf'), (req, res) => {
+    if (!req.file) return res.status(400).send('No file');
+
     const input = req.file.path;
-    const output = `compressed-${Date.now()}.pdf`;
+    const output = `/tmp/output-${Date.now()}.pdf`;
 
     const level = req.body.level || 'medium';
 
@@ -25,7 +26,10 @@ app.post('/compress', upload.single('pdf'), (req, res) => {
     const cmd = `gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=${quality} -dNOPAUSE -dQUIET -dBATCH -sOutputFile=${output} ${input}`;
 
     exec(cmd, (err) => {
-        if (err) return res.status(500).send('Compression failed');
+        if (err) {
+            console.log(err);
+            return res.status(500).send('Compression failed');
+        }
 
         res.download(output, () => {
             fs.unlinkSync(input);
@@ -34,8 +38,8 @@ app.post('/compress', upload.single('pdf'), (req, res) => {
     });
 });
 
-// IMPORTANT: dynamic port
-const PORT = process.env.PORT || 3000;
+// CRITICAL FIX
+const PORT = process.env.PORT;
 app.listen(PORT, '0.0.0.0', () => {
-    console.log('Server running on port ' + PORT);
+    console.log(`Server running on ${PORT}`);
 });
