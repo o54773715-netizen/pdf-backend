@@ -6,6 +6,12 @@ const fs = require('fs');
 const app = express();
 const upload = multer({ dest: 'uploads/' });
 
+// Root route (VERY IMPORTANT)
+app.get('/', (req, res) => {
+    res.send('Server is running ✅');
+});
+
+// Compress route
 app.post('/compress', upload.single('pdf'), (req, res) => {
     const input = req.file.path;
     const output = `compressed-${Date.now()}.pdf`;
@@ -19,7 +25,7 @@ app.post('/compress', upload.single('pdf'), (req, res) => {
     const cmd = `gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=${quality} -dNOPAUSE -dQUIET -dBATCH -sOutputFile=${output} ${input}`;
 
     exec(cmd, (err) => {
-        if (err) return res.status(500).send('Error');
+        if (err) return res.status(500).send('Compression failed');
 
         res.download(output, () => {
             fs.unlinkSync(input);
@@ -28,5 +34,8 @@ app.post('/compress', upload.single('pdf'), (req, res) => {
     });
 });
 
+// IMPORTANT: dynamic port
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log('Server running on port ' + PORT));
+app.listen(PORT, '0.0.0.0', () => {
+    console.log('Server running on port ' + PORT);
+});
