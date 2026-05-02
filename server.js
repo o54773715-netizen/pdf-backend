@@ -12,11 +12,14 @@ app.get("/", (req, res) => {
 
 app.post('/compress', upload.single('pdf'), (req, res) => {
     const input = req.file.path;
+    if (req.file.mimetype !== 'application/pdf') {
+  return res.status(400).send('Only PDF allowed');
+}
     const output = `compressed-${Date.now()}.pdf`;
 
     const level = req.body.level || 'medium';
 
-    let quality = '/ebook';
+    let quality = '/screen'; // fastest
     if (level === 'low') quality = '/printer';
     if (level === 'high') quality = '/screen';
 
@@ -26,8 +29,8 @@ app.post('/compress', upload.single('pdf'), (req, res) => {
         if (err) return res.status(500).send('Error');
 
         res.download(output, () => {
-            fs.unlinkSync(input);
-            fs.unlinkSync(output);
+            fs.unlink(input, () => {});
+            fs.unlink(output, () => {});
         });
     });
 });
