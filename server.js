@@ -23,7 +23,11 @@ app.post('/compress', upload.single('pdf'), (req, res) => {
     if (level === 'low') quality = '/printer';
     if (level === 'high') quality = '/screen';
 
-    const cmd = `gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=${quality} -dNOPAUSE -dQUIET -dBATCH -sOutputFile=${output} ${input}`;
+    const cmd = `gs -sDEVICE=pdfwrite \
+-dCompatibilityLevel=1.4 \
+-dPDFSETTINGS=${quality} \
+-dNOPAUSE -dQUIET -dBATCH \
+-sOutputFile=${output} ${input}`;
 
     exec(cmd, (err) => {
         if (err) return res.status(500).send('Error');
